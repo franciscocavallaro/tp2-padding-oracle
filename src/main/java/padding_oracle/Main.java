@@ -1,17 +1,23 @@
 package padding_oracle;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.util.Arrays;
+
+import static padding_oracle.PaddingOracle.xor;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        byte[] key = new byte[] { 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x08 };
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+        byte[] m2 = new byte[] { 'S', 'E', 'C', 'R', 'E', 'T', 0x02, 0x02 }; // padded message
+        byte[] x1 = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+
+        byte[] x2 = xor(x1, xor(m2, key)); // simulate CBC encryption: x2 = EK(m2) ⊕ x1
+
+        PaddingOracle oracle = new PaddingOracle(key);
+        PaddingOracleAttack attacker = new PaddingOracleAttack(oracle);
+
+        byte[] recovered = attacker.recoverPlaintext(x1, x2);
+        System.out.println("Recovered plaintext: " + Arrays.toString(recovered));
+        System.out.println("As string: " + new String(recovered));
     }
 }
